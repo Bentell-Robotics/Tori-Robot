@@ -3,3 +3,5 @@ Tori is a 5'0" humanoid robot. It's currently capable only of walking short dist
 Directional walking after 70000 iterations:
 
 ![70,000 iterations](https://github.com/Bentell-Robotics/Tori-Robot/blob/master/70000_iters.gif)
+
+![real_robot](https://github.com/Bentell-Robotics/Tori-Robot/blob/master/tori_real_armless.jpg)
