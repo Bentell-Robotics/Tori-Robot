@@ -1,0 +1,348 @@
+spine_x_p: &spine_x_p 40
+spine_y_p: &spine_y_p 30
+spine_z_p: &spine_z_p 20
+
+leg_p: &leg_p 2
+shoulder_x_p: &shoulder_x_p 50
+shoulder_y_p: &shoulder_y_p 50
+shoulder_z_p: &shoulder_z_p 50
+elbow_z_p: &elbow_z_p 50
+elbow_x_p: &elbow_x_p 50
+wrist_z_p: &wrist_z_p 10
+wrist_y_p: &wrist_y_p 10
+hip_x_p: &hip_x_p 100
+hip_y_p: &hip_y_p 100
+hip_z_p: &hip_z_p 100
+knee_p: &knee_p 30
+ankle_y_p: &ankle_y_p 50
+ankle_x_p: &ankle_x_p 50
+ball_p: &ball_p 1
+
+shoulder_x_d: &shoulder_x_d 0
+shoulder_y_d: &shoulder_y_d 0
+shoulder_z_d: &shoulder_z_d 0
+elbow_z_d: &elbow_z_d 0
+elbow_x_d: &elbow_x_d 0
+wrist_z_d: &wrist_z_d 0
+wrist_y_d: &wrist_y_d 0
+hip_x_d: &hip_x_d 10
+hip_y_d: &hip_y_d 5
+hip_z_d: &hip_z_d 5
+knee_d: &knee_d 3
+ankle_y_d: &ankle_y_d 2
+ankle_x_d: &ankle_x_d 2
+ball_d: &ball_d 0
+leg_d: &leg_d 2
+spine_x_d: &spine_x_d 1
+spine_y_d: &spine_y_d .8
+spine_z_d: &spine_z_d .5
+
+hip_x_i: &hip_x_i 0
+hip_y_i: &hip_y_i 0
+hip_z_i: &hip_z_i .01
+knee_i: &knee_i 0
+ankle_y_i: &ankle_y_i 0
+ankle_x_i: &ankle_x_i 0
+ball_i: &ball_i 0
+leg_i: &leg_i 0
+spine_x_i: &spine_x_i 0
+spine_y_i: &spine_y_i 0
+spine_z_i: &spine_z_i 0
+
+#arm_l_controller:
+#  type: position_controllers/JointTrajectoryController
+#  joints:
+#     - shoulder_l_x
+#     - shoulder_l_y
+#     - shoulder_l_z
+#     - elbow_l_z
+#     - elbow_l_x
+#     - wrist_l_z
+#     - wrist_l_y
+#  constraints:
+#      goal_time: 0.6
+#      stopped_velocity_tolerance: 0.05
+#      shoulder_l_x: {trajectory: 0.1, goal: 0.1}
+#      shoulder_l_y: {trajectory: 0.1, goal: 0.1}
+#      shoulder_l_z: {trajectory: 0.1, goal: 0.1}
+#      elbow_l_z: {trajectory: 0.1, goal: 0.1}
+#      elbow_l_x: {trajectory: 0.1, goal: 0.1}
+#      wrist_l_z: {trajectory: 0.1, goal: 0.1}
+#      wrist_l_y: {trajectory: 0.1, goal: 0.1}
+#  stop_trajectory_duration: 0.5
+#  state_publish_rate:  125
+#  action_monitor_rate: 20
+
+#arm_r_controller:
+#  type: position_controllers/JointTrajectoryController
+#  joints:
+#     - shoulder_r_x
+#     - shoulder_r_y
+#     - shoulder_r_z
+#     - elbow_r_z
+#     - elbow_r_x
+#     - wrist_r_z
+#     - wrist_r_y
+#  constraints:
+#      goal_time: 0.6
+#      stopped_velocity_tolerance: 0.05
+#      shoulder_r_x: {trajectory: 0.1, goal: 0.1}
+#      shoulder_r_y: {trajectory: 0.1, goal: 0.1}
+#      shoulder_r_z: {trajectory: 0.1, goal: 0.1}
+#      elbow_r_z: {trajectory: 0.1, goal: 0.1}
+#      elbow_r_x: {trajectory: 0.1, goal: 0.1}
+#      wrist_r_z: {trajectory: 0.1, goal: 0.1}
+#      wrist_r_y: {trajectory: 0.1, goal: 0.1}
+#  stop_trajectory_duration: 0.5
+#  state_publish_rate:  125
+#  action_monitor_rate: 20
+
+leg_r_controller:
+  type: position_controllers/JointTrajectoryController
+  joints:
+     - hip_r_x
+     - hip_r_y
+     - hip_r_z
+     - knee_r
+     - ankle_r_x
+     - ankle_r_y
+  constraints:
+      goal_time: 0.6
+      stopped_velocity_tolerance: 0.05
+      hip_r_x: {trajectory: 0.1, goal: 0.1}
+      hip_r_y: {trajectory: 0.1, goal: 0.1}
+      hip_r_z: {trajectory: 0.1, goal: 0.1}
+      knee_r: {trajectory: 0.1, goal: 0.1}
+      ankle_r_x: {trajectory: 0.1, goal: 0.1}
+      ankle_r_y: {trajectory: 0.1, goal: 0.1}
+      allow_partial_joints_goal: true
+  stop_trajectory_duration: 0.5
+  state_publish_rate:  100
+  action_monitor_rate: 20
+
+toes_r_controller:
+  type: position_controllers/JointTrajectoryController
+  joints:
+     - ball_joint_r
+
+  constraints:
+      goal_time: 0.6
+      stopped_velocity_tolerance: 0.05
+      ball_joint_r: {trajectory: 0.1, goal: 0.1}
+
+  stop_trajectory_duration: 0.5
+  state_publish_rate:  100
+  action_monitor_rate: 20
+
+leg_l_controller:
+  type: position_controllers/JointTrajectoryController
+  joints:
+     - hip_l_x
+     - hip_l_y
+     - hip_l_z
+     - knee_l
+     - ankle_l_x
+     - ankle_l_y
+  constraints:
+      goal_time: 0.6
+      stopped_velocity_tolerance: 0.05
+      hip_l_x: {trajectory: 0.1, goal: 0.1}
+      hip_l_y: {trajectory: 0.1, goal: 0.1}
+      hip_l_z: {trajectory: 0.1, goal: 0.1}
+      knee_l: {trajectory: 0.1, goal: 0.1}
+      ankle_l_x: {trajectory: 0.1, goal: 0.1}
+      ankle_l_y: {trajectory: 0.1, goal: 0.1}
+      allow_partial_joints_goal: true
+  stop_trajectory_duration: 0.5
+  state_publish_rate:  100
+  action_monitor_rate: 20
+
+toes_l_controller:
+  type: position_controllers/JointTrajectoryController
+  joints:
+     - ball_joint_l
+
+  constraints:
+      goal_time: 0.6
+      stopped_velocity_tolerance: 0.05
+      ball_joint_l: {trajectory: 0.1, goal: 0.1}
+
+  stop_trajectory_duration: 0.5
+  state_publish_rate:  100
+  action_monitor_rate: 20
+
+spine_controller:
+  type: position_controllers/JointTrajectoryController
+  joints:
+     - spine_x
+     - spine_y
+     - spine_z
+  constraints:
+      goal_time: 0.6
+      stopped_velocity_tolerance: 0.05
+      spine_x: {trajectory: 0.1, goal: 0.1}
+      spine_y: {trajectory: 0.1, goal: 0.1}
+      spine_z: {trajectory: 0.1, goal: 0.1}
+  stop_trajectory_duration: 0.5
+  state_publish_rate:  100
+  action_monitor_rate: 20
+
+joint_group_position_controller:
+  type: position_controllers/JointGroupPositionController
+  joints:
+#     - shoulder_l_x
+#     - shoulder_l_y
+#     - shoulder_l_z
+#     - elbow_l_z
+#     - elbow_l_x
+#     - wrist_l_z
+#     - wrist_l_y
+#     - shoulder_r_x
+#     - shoulder_r_y
+#     - shoulder_r_z
+#     - elbow_r_z
+#     - elbow_r_x
+#     - wrist_r_z
+#     - wrist_r_y
+     - hip_r_x
+     - hip_r_y
+     - hip_r_z
+     - knee_r
+     - ankle_r_x
+     - ankle_r_y
+     - hip_l_x
+     - hip_l_y
+     - hip_l_z
+     - knee_l
+     - ankle_l_x
+     - ankle_l_y
+     - spine_x
+     - spine_y
+     - spine_z
+/gazebo_ros_control:
+  pid_gains:
+
+    shoulder_l_x:
+      p: *shoulder_x_p
+      i: 0.0
+      d: 0
+    shoulder_l_y:
+      p: *shoulder_y_p
+      i: 0.0
+      d: 0
+    shoulder_l_z:
+      p: *shoulder_z_p
+      i: 0.0
+      d: 0
+    elbow_l_z:
+      p: *elbow_z_p
+      i: 0.0
+      d: 0
+    elbow_l_x:
+      p: *elbow_x_p
+      i: 0.0
+      d: 0
+    wrist_l_z:
+      p: *wrist_z_p
+      i: 0.0
+      d: 0
+    wrist_l_y:
+      p: *wrist_y_p
+      i: 0.0
+      d: 0
+    shoulder_r_x:
+      p: *shoulder_x_p
+      i: 0.0
+      d: 0
+    shoulder_r_y:
+      p: *shoulder_y_p
+      i: 0.0
+      d: 0
+    shoulder_r_z:
+      p: *shoulder_z_p
+      i: 0.0
+      d: 0
+    elbow_r_z:
+      p: *elbow_z_p
+      i: 0.0
+      d: 0
+    elbow_r_x:
+      p: *elbow_x_p
+      i: 0.0
+      d: 0
+    wrist_r_z:
+      p: *wrist_z_p
+      i: 0.0
+      d: 0
+    wrist_r_y:
+      p: *wrist_y_p
+      i: 0.0
+      d: 0
+    hip_r_x:
+      p: *hip_x_p
+      i: *hip_x_i
+      d: *hip_x_d
+    hip_r_y:
+      p: *hip_y_p
+      i: *hip_y_i
+      d: *hip_y_d
+    hip_r_z:
+      p: *hip_z_p
+      i: *hip_z_i
+      d: *hip_z_d
+    knee_r:
+      p: *knee_p
+      i: *knee_i
+      d: *knee_d
+    ankle_r_x:
+      p: *ankle_x_p
+      i: *ankle_x_i
+      d: *ankle_x_d
+    ankle_r_y:
+      p: *ankle_y_p
+      i: *ankle_y_i
+      d: *ankle_y_d
+    hip_l_x:
+      p: *hip_x_p
+      i: *hip_x_i
+      d: *hip_x_d
+    hip_l_y:
+      p: *hip_y_p
+      i: *hip_y_i
+      d: *hip_y_d
+    hip_l_z:
+      p: *hip_z_p
+      i: *hip_z_i
+      d: *hip_z_d
+    knee_l:
+      p: *knee_p
+      i: *knee_i
+      d: *knee_d
+    ankle_l_x:
+      p: *ankle_x_p
+      i: *ankle_x_i
+      d: *ankle_x_d
+    ankle_l_y:
+      p: *ankle_y_p
+      i: *ankle_y_i
+      d: *ankle_y_d
+    spine_x:
+      p: *spine_x_p
+      i: *spine_x_i
+      d: *spine_x_d
+    spine_y:
+      p: *spine_y_p
+      i: *spine_y_i
+      d: *spine_y_d
+    spine_z:
+      p: *spine_z_p
+      i: *spine_z_i
+      d: *spine_z_d
+    ball_joint_l:
+      p: *ball_p
+      i: *leg_i
+      d: *ball_d
+    ball_joint_r:
+      p: *ball_p
+      i: *leg_i
+      d: *ball_d

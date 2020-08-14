@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <!-- We use a custom world for the robot so that the camera angle is launched correctly -->
+
+  <world name="default">
+<!-- Runs physics -->
+    <plugin
+      filename="libignition-gazebo-physics-system.so"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+
+    <!-- Broadcasts the server state to the GUI -->
+    <plugin
+      filename="libignition-gazebo-scene-broadcaster-system.so"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <!-- Supports commands like spawning and teleporting entities -->
+    <plugin
+      filename="libignition-gazebo-user-commands-system.so"
+      name="ignition::gazebo::systems::UserCommands">
+    </plugin>
+
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>4.927360 -4.376610 3.740080 0.000000 0.275643 2.356190</pose>
+        <view_controller>orbit</view_controller>
+      </camera>
+    </gui>
+
+    <gravity>0 0 -9.81</gravity>
+
+
+  </world>
+</sdf>

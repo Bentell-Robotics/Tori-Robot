@@ -1,0 +1,318 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <xacro:macro name="tori_arm_transmission" params="prefix hw_interface">
+    <!--
+    <transmission name="shoulder_l_x_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="shoulder_l_x">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="shoulder_l_x_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="shoulder_l_y_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="shoulder_l_y">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="shoulder_l_y_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}shoulder_l_z_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}shoulder_l_z">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}shoulder_l_z_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}elbow_l_z_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}elbow_l_z">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}elbow_l_z_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}elbow_l_x_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}elbow_l_x">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}elbow_l_x_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}wrist_l_z_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}wrist_l_z">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}wrist_l_z_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}wrist_l_y_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}wrist_l_y">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}wrist_l_y_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}shoulder_r_x_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}shoulder_r_x">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}shoulder_r_x_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}shoulder_r_y_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}shoulder_r_y">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}shoulder_r_y_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}shoulder_r_z_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}shoulder_r_z">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}shoulder_r_z_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}elbow_r_z_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}elbow_r_z">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}elbow_r_z_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}elbow_r_x_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}elbow_r_x">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}elbow_r_x_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}wrist_r_z_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}wrist_r_z">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}wrist_r_z_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}wrist_r_y_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}wrist_r_y">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}wrist_r_y_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+-->
+    <transmission name="${prefix}hip_l_x_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}hip_l_x">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}hip_l_x_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}hip_l_y_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}hip_l_y">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}hip_l_y_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}hip_l_z_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}hip_l_z">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}hip_l_z_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}knee_l_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}knee_l">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}knee_l_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}ankle_l_x_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}ankle_l_x">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}ankle_l_x_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}ankle_l_y_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}ankle_l_y">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}ankle_l_y_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}hip_r_x_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}hip_r_x">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}hip_r_x_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}hip_r_y_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}hip_r_y">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}hip_r_y_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}hip_r_z_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}hip_r_z">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}hip_r_z_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}knee_r_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}knee_r">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}knee_r_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}ankle_r_x_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}ankle_r_x">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}ankle_r_x_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}ankle_r_y_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}ankle_r_y">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}ankle_r_y_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="spine_x_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="spine_x">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="spine_x_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="spine_y_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="spine_y">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="spine_y_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="spine_z_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="spine_z">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="spine_z_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <!--<transmission name="${prefix}ball_joint_l_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}ball_joint_l">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}ball_joint_l_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}ball_joint_r_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}ball_joint_r">
+        <hardwareInterface>${hw_interface}</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}ball_joint_r_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>-->
+
+  </xacro:macro>
+
+</robot>

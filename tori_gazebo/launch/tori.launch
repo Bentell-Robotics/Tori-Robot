@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
+  <arg name="paused" default="true" doc="Starts gazebo in paused mode" />
+  <arg name="gui" default="false" doc="Starts gazebo gui" />
+  <arg name="headless" default="true"/>
+
+  <!-- startup simulated world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find tori_gazebo)/worlds/tori.world"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="headless" value="$(arg headless)"/>
+    <arg name="verbose" value="true"/>
+    <arg name="physics" value="ode"/>
+  </include>
+
+  <!-- send robot urdf to param server -->
+  <include file="$(find tori_description)/launch/tori_upload.launch">
+    <arg name="limited" value="$(arg limited)"/>
+  </include>
+  <!--<node pkg="openni_camera" type="openni_node" name="openni_camera" output="screen" respawn="true" >
+    <param name="device_type" value="1" />
+    <param name="registration_type" value="1" />
+    <param name="point_cloud_resolution" value="1" />
+    <param name="openni_depth_optical_frame" value="kinect_depth_optical_frame" />
+    <param name="openni_rgb_optical_frame" value="kinect_rgb_optical_frame" />
+    <param name="image_input_format" value="5" />
+    <rosparam command="load" file="$(find openni_camera)/info/openni_params.yaml" />
+  </node>-->
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -z 0.0" respawn="false" output="screen" />
+
+  <include file="$(find tori_gazebo)/launch/controller_utils.launch"/>
+
+  <!-- start this controller -->
+  <rosparam file="$(find tori_gazebo)/controller/arm_controller_tori.yaml" command="load"/>
+  <node pkg="nodelet"
+      type="nodelet"
+      name="nodelet_manager"
+      args="manager"
+      output="screen"/>
+<!--
+  <node name="arm_l_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn arm_l_controller" respawn="false" output="screen"/>
+  <node name="arm_r_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn arm_r_controller" respawn="false" output="screen"/>
+-->
+  <node name="leg_l_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn leg_l_controller" respawn="false" output="screen"/>
+  <node name="leg_r_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn leg_r_controller" respawn="false" output="screen"/>
+  <node name="spine_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn spine_controller" respawn="false" output="screen"/>
+  <!--<node name="toes_l_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn toes_l_controller" respawn="false" output="screen"/>
+  <node name="toes_r_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn toes_r_controller" respawn="false" output="screen"/>
+-->
+  <!-- load other controllers -->
+  <node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load joint_group_position_controller" />
+
+  <!--<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" ></node>-->
+  <!--<node name="rviz" pkg="rviz" type="rviz" />-->
+
+  <group ns="/camera/color/image_raw">
+    <rosparam param="disable_pub_plugins">
+      - 'image_transport/compressedDepth' <!--error on this topic when using ros_bridge-->
+    </rosparam>
+  </group>
+  <arg name="node_start_delay" default="15.0" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find tori_description)/cfg/robot.rviz" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' "/>
+</launch>

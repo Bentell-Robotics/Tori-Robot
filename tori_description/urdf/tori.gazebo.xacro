@@ -1,0 +1,251 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:property name="name" value="tori" />
+  <plugin name="rs" filename="libRealSensePlugin.so"/>
+  <!-- camera_l -->
+  <!--
+  <gazebo reference="camera_l_link">
+    <sensor type="camera" name="camera_l">
+      <update_rate>3.0</update_rate>
+      <camera name="cam_l">
+        <horizontal_fov>1.3962634</horizontal_fov>
+        <image>
+          <width>800</width>
+          <height>800</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>300</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+        <alwaysOn>true</alwaysOn>
+        <updateRate>0.0</updateRate>
+        <cameraName>camera_l</cameraName>
+        <imageTopicName>image_raw</imageTopicName>
+        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+        <frameName>camera_l_link</frameName>
+        <hackBaseline>0.07</hackBaseline>
+        <distortionK1>0.0</distortionK1>
+        <distortionK2>0.0</distortionK2>
+        <distortionK3>0.0</distortionK3>
+        <distortionT1>0.0</distortionT1>
+        <distortionT2>0.0</distortionT2>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+
+
+  <gazebo reference="camera_r_link">
+    <sensor type="camera" name="camera_r">
+      <update_rate>3.0</update_rate>
+      <camera name="cam_r">
+        <horizontal_fov>1.3962634</horizontal_fov>
+        <image>
+          <width>800</width>
+          <height>800</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>300</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+        <alwaysOn>true</alwaysOn>
+        <updateRate>0.0</updateRate>
+        <cameraName>camera_r</cameraName>
+        <imageTopicName>image_raw</imageTopicName>
+        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+        <frameName>camera_r_link</frameName>
+        <hackBaseline>0.07</hackBaseline>
+        <distortionK1>0.0</distortionK1>
+        <distortionK2>0.0</distortionK2>
+        <distortionK3>0.0</distortionK3>
+        <distortionT1>0.0</distortionT1>
+        <distortionT2>0.0</distortionT2>
+      </plugin>
+    </sensor>
+  </gazebo>-->
+
+<!--
+  <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
+    <baseline>0.2</baseline>
+    <alwaysOn>true</alwaysOn>
+
+    <updateRate>0.0</updateRate>
+    <cameraName>camera_ir</cameraName>
+    <imageTopicName>/camera/color/image_raw</imageTopicName>
+    <cameraInfoTopicName>/camera/color/camera_info</cameraInfoTopicName>
+    <depthImageTopicName>/camera/depth/image_raw</depthImageTopicName>
+    <depthImageCameraInfoTopicName>/camera/depth/camera_info</depthImageCameraInfoTopicName>
+    <pointCloudTopicName>/camera/depth/points</pointCloudTopicName>
+    <frameName>camera_l_link</frameName>
+    <pointCloudCutoff>0.5</pointCloudCutoff>
+    <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
+    <distortionK1>0</distortionK1>
+    <distortionK2>0</distortionK2>
+    <distortionK3>0</distortionK3>
+    <distortionT1>0</distortionT1>
+    <distortionT2>0</distortionT2>
+    <CxPrime>0</CxPrime>
+    <Cx>0</Cx>
+    <Cy>0</Cy>
+    <focalLength>0</focalLength>
+    <hackBaseline>0</hackBaseline>
+  </plugin>
+-->
+
+
+
+  <!-- stereo plugin that produces a raw_stereo message
+  -->
+  <!--
+  <map name="sensor" flag="gazebo">
+    <verbatim key="camera_controller">
+      <controller:ros_stereo_camera name="camera_controller" plugin="libros_stereo_camera.so">
+        <alwaysOn>true</alwaysOn>
+        <updateRate>20.0</updateRate>
+        <leftCamera>camera_l_link</leftCamera>
+        <rightCamera>camera_r_link</rightCamera>
+        <topicName>${name}/raw_stereo</topicName>
+        <frameName>${name}_optical_frame</frameName>
+        <CxPrime>320</CxPrime>
+        <Cx>320</Cx>
+        <Cy>240</Cy>
+        <focal_length>320</focal_length> --><!-- image_width / (2*tan(hfov_radian /2)) -->
+        <!--<distortion_k1>0</distortion_k1>
+        <distortion_k2>0</distortion_k2>
+        <distortion_k3>0</distortion_k3>
+        <distortion_t1>0</distortion_t1>
+        <distortion_t2>0</distortion_t2>
+        <baseline>${stereo_dy}</baseline>--> <!-- home pos. of robot has +x forward, +y left -->
+        <!--<interface:stereocamera name="${name}_iface" />
+      </controller:ros_stereo_camera>
+    </verbatim>
+  </map>-->
+
+
+
+
+
+
+  <xacro:macro name="tori_arm_gazebo" params="prefix">
+    <gazebo reference="pelvis">
+      <selfCollide>1</selfCollide>
+      <implicitSpringDamper>True</implicitSpringDamper>
+    </gazebo>
+<!--
+    <gazebo reference="shoulder_l0">
+      <selfCollide>False</selfCollide>
+      <implicitSpringDamper>True</implicitSpringDamper>
+    </gazebo>
+
+    <gazebo reference="shoulder_l1">
+      <selfCollide>False</selfCollide>
+      <implicitSpringDamper>True</implicitSpringDamper>
+    </gazebo>
+
+    <gazebo reference="arm_l">
+      <selfCollide>True</selfCollide>
+    </gazebo>
+
+    <gazebo reference="forearm_l">
+      <selfCollide>False</selfCollide>
+    </gazebo>
+    <gazebo reference="wrist_l0">
+      <selfCollide>True</selfCollide>
+    </gazebo>
+    <gazebo reference="wrist_l1">
+      <selfCollide>False</selfCollide>
+    </gazebo>
+    <gazebo reference="hand_l">
+      <selfCollide>True</selfCollide>
+    </gazebo>
+
+    <gazebo reference="${prefix}shoulder_r0">
+      <selfCollide>False</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}shoulder_r1">
+      <selfCollide>False</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}arm_r">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}forearm_r">
+      <selfCollide>False</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}wrist_r0">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}wrist_r1">
+      <selfCollide>False</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}hand_r">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+-->
+    <gazebo reference="${prefix}hip_l_z_x">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}hip_l_x_y">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}thigh_l">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}shin_l">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}ankle_l">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+
+
+    <gazebo reference="${prefix}hip_r_z_x">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}hip_r_x_y">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}thigh_r">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}shin_r">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}ankle_r">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+
+
+    <gazebo reference="torso_lower">
+      <selfCollide>1</selfCollide>
+      <implicitSpringDamper>True</implicitSpringDamper>
+    </gazebo>
+    <gazebo reference="torso_mid">
+      <selfCollide>1</selfCollide>
+      <implicitSpringDamper>True</implicitSpringDamper>
+    </gazebo>
+    <gazebo reference="torso_upper">
+      <selfCollide>True</selfCollide>
+      <implicitSpringDamper>True</implicitSpringDamper>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

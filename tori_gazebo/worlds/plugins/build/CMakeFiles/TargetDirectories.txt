@@ -1,0 +1,3 @@
+/home/kelsey/catkin_ws/src/tori/tori_gazebo/worlds/plugins/build/CMakeFiles/rebuild_cache.dir
+/home/kelsey/catkin_ws/src/tori/tori_gazebo/worlds/plugins/build/CMakeFiles/factory.dir
+/home/kelsey/catkin_ws/src/tori/tori_gazebo/worlds/plugins/build/CMakeFiles/edit_cache.dir

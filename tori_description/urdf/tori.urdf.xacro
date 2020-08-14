@@ -1,0 +1,2952 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <xacro:include filename="$(find tori_description)/urdf/tori.transmission.xacro" />
+  <xacro:include filename="$(find tori_description)/urdf/tori.gazebo.xacro" />
+  <!-- Probably needed!<xacro:include filename="$(find tori_description)/urdf/realsense_camera/model.sdf" />-->
+  <!--NEEDED! <xacro:include filename="$(find realsense2_description)/urdf/_d415.urdf.xacro"/>-->
+
+  <!--<xacro:macro name="rs_cam_stuff" params="parent">
+    <link name="cam_link">
+      <gazebo reference="sensor_d415_link"/>
+    </link>
+    <joint name="cam_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="sensor_d415_link"/>
+      <origin xyz="0 0 1.5"/>
+    </joint>
+  </xacro:macro>-->
+  <!--<xacro:macro name="rs_model_stuff" params="">
+    <link name="rs_model_link">
+      <gazebo reference="realsense_camera"/>
+    </link>
+    <joint name="rs_model_joint">
+      <parent link="torso_upper"/>
+      <child link="rs_model_link"/>
+      <origin xyz="0 0 1.5"/>
+    </joint>
+  </xacro:macro>-->
+
+
+
+  <!--<gazebo reference="torso_upper"> this -->
+    <!--<sensor type="depth" name="camera1">-->
+
+      <!--<plugin name="gazebo_realsense" filename="libRealSensePlugin.so">
+        <robotNamespace>/</robotNamespace>
+      </plugin>-->
+      <!-- from here<plugin name="realsense_gazebo_plugin" filename="realsense_gazebo_plugin.so">
+        <robotNamespace>/</robotNamespace>
+      </plugin> to here-->
+    <!--</sensor>-->
+  <!--</gazebo> this-->
+
+
+  <xacro:macro name="cylinder_inertial" params="radius length mass pos ang">
+    <inertial>
+      <mass value="${mass}" />
+      <origin xyz="${pos}" rpy="${ang}" />
+      <inertia ixx="${0.0833333 * mass * (3 * radius * radius + length * length)}" ixy="0" ixz="0"
+        iyy="${0.0833333 * mass * (3 * radius * radius + length * length)}" iyz="0"
+        izz="${0.5 * mass * radius * radius}" />
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="cylinder_placeholder_inertial" params="radius length mass pos ang">
+    <inertial>
+      <mass value="${mass}" />
+      <origin xyz="${pos}" rpy="${ang}" />
+      <inertia ixx=".0001" ixy="0.000" ixz="0.000"
+        iyy=".0001" iyz="0.000"
+        izz=".0001" />
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="box_inertial" params="height width depth mass pos ang">
+    <inertial>
+      <mass value="${mass}" />
+      <origin xyz="${pos}" rpy="${ang}" />
+
+      <inertia ixx="${.0833333 * mass * (height * height + depth * depth)}" ixy="0" ixz="0"
+        iyy="${.0833333 * mass * (width * width + height * height)}" iyz="0"
+        izz="${.0833333 * mass * (width * width + depth * depth)}" />
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="tori_robot" params="prefix joint_limited
+    transmission_hw_interface:=hardware_interface/PositionJointInterface
+    safety_limits:=false safety_pos_margin:=0.15
+    safety_k_position:=20">
+
+    <xacro:property name="PI" value="3.1415926535897931"/>
+    <xacro:property name="mass_DS" value=".070" /><!--.070-->
+    <xacro:property name="mass_JX" value=".064" />
+    <xacro:property name="mass_SF" value=".068" /><!--.068-->
+    <xacro:property name="mass_rpi" value=".002" /><!--.052-->
+    <xacro:property name="mass_pca" value=".011" />
+    <xacro:property name="mass_arm" value=".09" />
+    <xacro:property name="mass_forearm" value=".15" />
+    <xacro:property name="mass_hand" value=".05" />
+    <xacro:property name="mass_pelvis" value=".186" />
+    <xacro:property name="mass_tailbone" value="0.2" />
+    <xacro:property name="mass_torso_lower" value=".084" /><!--l, m, u = .084, .075, .125 resp.-->
+    <xacro:property name="mass_torso_mid" value=".075" />
+    <xacro:property name="mass_torso_upper" value=".125" />
+    <xacro:property name="mass_hip_z_x" value=".121" />
+    <xacro:property name="mass_hip_x_y" value=".057" />
+    <xacro:property name="mass_thigh" value=".343" />
+    <xacro:property name="mass_calf" value=".410" />
+    <xacro:property name="mass_ankle" value=".058" />
+    <xacro:property name="mass_foot" value=".246" />
+    <xacro:property name="mass_foot_r" value=".186" />
+    <xacro:property name="mass_ball" value=".01" />
+    <xacro:property name="mass_finger_00" value=".005" />
+    <xacro:property name="mass_finger_01" value=".005" />
+    <xacro:property name="mass_finger_02" value=".005" />
+    <xacro:property name="mass_finger_10" value=".005" />
+    <xacro:property name="mass_finger_11" value=".005" />
+    <xacro:property name="mass_finger_12" value=".005" />
+    <xacro:property name="mass_finger_20" value=".005" />
+    <xacro:property name="mass_finger_21" value=".005" />
+    <xacro:property name="mass_finger_22" value=".005" />
+    <xacro:property name="mass_finger_30" value=".005" />
+    <xacro:property name="mass_finger_31" value=".005" />
+    <xacro:property name="mass_finger_32" value=".005" />
+    <xacro:property name="mass_thumb_0" value=".005" />
+    <xacro:property name="mass_thumb_1" value=".005" />
+    <xacro:property name="mass_thumb_2" value=".005" />
+    <xacro:property name="mass_finger_base" value=".001" />
+
+    <xacro:property name="width_tailbone" value=".1" />
+    <xacro:property name="depth_tailbone" value="0.1" />
+    <xacro:property name="height_tailbone" value="0.01" />
+
+    <xacro:property name="width_pelvis" value=".4" />
+    <xacro:property name="depth_pelvis" value="0.2" />
+    <xacro:property name="height_pelvis" value="0.08" />
+
+    <xacro:property name="width_torso_lower" value=".1" />
+    <xacro:property name="depth_torso_lower" value="0.2" />
+    <xacro:property name="height_torso_lower" value="0.1" />
+
+    <xacro:property name="width_torso_mid" value=".1" />
+    <xacro:property name="depth_torso_mid" value="0.2" />
+    <xacro:property name="height_torso_mid" value="0.1" />
+
+    <xacro:property name="width_torso_upper" value=".4" />
+    <xacro:property name="depth_torso_upper" value="0.2" />
+    <xacro:property name="height_torso_upper" value="0.05" />
+
+    <xacro:property name="foot_offset" value=".05" />
+    <xacro:property name="hip_z_offset" value="0.02" />
+    <xacro:property name="ball_z_offset" value=".0" />
+
+    <xacro:property name="radius_placeholder" value=".05" />
+    <xacro:property name="height_placeholder" value=".05" />
+    <xacro:property name="mass_placeholder" value=".02" />
+
+    <xacro:property name="gap_spine" value="0.01" />
+
+    <xacro:property name="camera_link" value="0.03" />
+    <xacro:property name="camera_base_distance" value=".04" />
+
+    <xacro:property name="height_neck" value="0.04" />
+    <xacro:property name="radius_neck" value="0.065625" />
+    <xacro:property name="radius_sphere" value="0.24609375" />
+    <xacro:property name="width_gap_shoulder_0" value="0.03" />
+    <xacro:property name="width_gap_shoulder_1" value="0.01" />
+    <xacro:property name="width_gap_shoulder_2" value="0.03" />
+    <xacro:property name="height_arm" value="0.06" />
+    <xacro:property name="width_arm" value="0.20" />
+    <xacro:property name="depth_arm" value="0.06" />
+    <xacro:property name="width_elbow_0" value="0.015" />
+    <xacro:property name="width_gap_elbow_0" value="0.03" />
+    <xacro:property name="width_gap_elbow_1" value="0.03" />
+    <xacro:property name="height_wrist_0" value="0.04" />
+    <xacro:property name="width_wrist_0" value="0.015" />
+    <xacro:property name="depth_wrist_0" value="0.005" />
+    <xacro:property name="width_gap_wrist_0" value="0.03" />
+    <xacro:property name="width_gap_wrist_1" value="0.03" />
+    <xacro:property name="height_forearm" value="0.06" />
+    <xacro:property name="width_forearm" value="0.2" />
+    <xacro:property name="depth_forearm" value="0.08" />
+    <xacro:property name="height_palm" value="0.06" />
+    <xacro:property name="width_palm" value="0.12" />
+    <xacro:property name="depth_palm" value="0.02" />
+    <xacro:property name="square_finger" value="0.01" />
+    <xacro:property name="length_finger" value="0.03" />
+    <xacro:property name="length_finger_base" value="0.01" />
+    <xacro:property name="square_finger_base" value="0.01" />
+    <xacro:property name="gap_finger" value="0.01" />
+    <xacro:property name="gap_finger_base" value="0.01" />
+    <xacro:property name="head_scale" value="0.001" />
+    <xacro:property name="offset_hip_z" value="0.10" /> <!--how far along x axis relative to hip center--> <!-- originally .1-->
+    <xacro:property name="offset_hip_x" value="-.100" />
+    <xacro:property name="offset_hip_y" value="-.035" />
+    <xacro:property name="offset_knee" value="-.198" />
+    <xacro:property name="offset_ankle_x" value="-.222" />
+    <xacro:property name="offset_ankle_y" value="-.095" />
+    <xacro:property name="offset_spine_y" value=".120" />
+    <xacro:property name="offset_spine_z" value=".116" />
+
+
+    <xacro:property name="dummy_adjustment" value="-.18" /><!-- -.18 -->
+
+
+    <xacro:property name="hip_z_x_offset" value="-0.051" />
+
+    <xacro:property name="damping" value="0" /><!--.1-->
+    <xacro:property name="friction" value="0" /><!--.1-->
+
+    <xacro:property name="lower_limit_spine_x" value="-0.22" /><!-- +-.52 for x y z -->
+    <xacro:property name="upper_limit_spine_x" value=".22" />
+    <xacro:property name="lower_limit_spine_y" value="-0.22" />
+    <xacro:property name="upper_limit_spine_y" value="0.22" />
+    <xacro:property name="lower_limit_spine_z" value="-.22" />
+    <xacro:property name="upper_limit_spine_z" value=".22" />
+    <xacro:property name="lower_limit_shoulder_x" value="-1.57" />
+    <xacro:property name="upper_limit_shoulder_x" value="1.57" />
+    <xacro:property name="lower_limit_shoulder_y" value="-1.57" />
+    <xacro:property name="upper_limit_shoulder_y" value="1.57" />
+    <xacro:property name="lower_limit_shoulder_z" value="-1.57" />
+    <xacro:property name="upper_limit_shoulder_z" value="1.57" />
+    <xacro:property name="lower_limit_elbow_x" value="-1.57" />
+    <xacro:property name="upper_limit_elbow_x" value="1.57" />
+    <xacro:property name="lower_limit_elbow_z" value="-2.36" />
+    <xacro:property name="upper_limit_elbow_z" value="0" />
+    <xacro:property name="lower_limit_wrist_y" value="-.52" />
+    <xacro:property name="upper_limit_wrist_y" value=".52" />
+    <xacro:property name="lower_limit_wrist_z" value="-1.57" />
+    <xacro:property name="upper_limit_wrist_z" value="1.57" />
+    <xacro:property name="lower_limit_finger_y" value="-.39" />
+    <xacro:property name="upper_limit_finger_y" value=".39" />
+    <xacro:property name="lower_limit_finger_0" value="-.39" />
+    <xacro:property name="upper_limit_finger_0" value="1.57" />
+    <xacro:property name="lower_limit_finger_1" value="0" />
+    <xacro:property name="upper_limit_finger_1" value="1.57" />
+    <xacro:property name="lower_limit_finger_2" value="0" />
+    <xacro:property name="upper_limit_finger_2" value="1.57" />
+    <xacro:property name="lower_limit_thumb_y" value="0" />
+    <xacro:property name="upper_limit_thumb_y" value="1.57" />
+    <xacro:property name="lower_limit_thumb_0" value="0" />
+    <xacro:property name="upper_limit_thumb_0" value="1.57" />
+    <xacro:property name="lower_limit_thumb_1" value="0" />
+    <xacro:property name="upper_limit_thumb_1" value="1.57" />
+    <xacro:property name="lower_limit_thumb_2" value="0" />
+    <xacro:property name="upper_limit_thumb_2" value="1.57" />
+    <xacro:property name="lower_limit_hip_x" value="0" />
+    <xacro:property name="upper_limit_hip_x" value=".8" />
+    <xacro:property name="lower_limit_hip_y" value="-.52" />
+    <xacro:property name="upper_limit_hip_y" value=".78" />
+    <xacro:property name="lower_limit_hip_z" value="-.78" />
+    <xacro:property name="upper_limit_hip_z" value=".78" />
+    <xacro:property name="lower_limit_knee_x" value="-1.57" />
+    <xacro:property name="upper_limit_knee_x" value="0" />
+    <xacro:property name="lower_limit_ankle_x" value="-0.52" />
+    <xacro:property name="upper_limit_ankle_x" value="0.80" />
+    <xacro:property name="lower_limit_ankle_y" value="-.52" />
+    <xacro:property name="upper_limit_ankle_y" value=".52" />
+    <xacro:property name="lower_limit_ball" value="-0.52" />
+    <xacro:property name="upper_limit_ball" value="1.57" />
+    <xacro:property name="White" value="1.0 1.0 1.0 1.0" />
+    <xacro:property name="Black" value="0.0 0.0 0.0 0.0" />
+    <xacro:property name="Red" value="1.0 0.0 0.0 1.0" />
+    <xacro:property name="Orange" value="1.0 0.5 0.5 1.0" />
+
+    <xacro:property name="inertia_constant_x" value=".01" />
+    <xacro:property name="small_inertia_constant_x" value=".01" />
+    <xacro:property name="effort_shoulder_x" value="3.92" /> <!--40 kg cm? May need to be %-->
+    <xacro:property name="effort_shoulder_y" value="3.92" />
+    <xacro:property name="effort_shoulder_z" value="3.92" />
+    <xacro:property name="effort_wrist_y" value="3.92" />
+    <xacro:property name="effort_wrist_z" value="3.92" />
+    <xacro:property name="effort_hip_x" value="3.92" />
+    <xacro:property name="effort_hip_y" value="3.92" />
+    <xacro:property name="effort_hip_z" value="3.92" />
+    <xacro:property name="effort_knee" value="3.92" />
+    <xacro:property name="effort_ankle_y" value="3.92" />
+    <xacro:property name="effort_ankle_x" value="3.92" />
+    <xacro:property name="effort_ball" value="3.92" />
+
+    <xacro:property name="effort_constant" value="3.92" /><!--3.92?--> <!--30-->
+    <!--<xacro:property name="joint_velocity" value="2.0" />-->
+    <xacro:property name="velocity_DS" value="1.75"/> <!-- ~7.0V-->
+    <xacro:property name="velocity_JX" value="1.97" /> <!-- ~7.0V-->
+
+    <xacro:property name="k" value="1" />
+    <xacro:property name="thigh_r_mesh" value="package://tori_description/meshes/thigh_r.stl" />
+    <xacro:property name="calf_r_mesh" value="package://tori_description/meshes/calf_r.stl" />
+    <xacro:property name="hip_x_y_r_mesh" value="package://tori_description/meshes/hip_x_y_r.stl" />
+    <xacro:property name="hip_z_x_r_mesh" value="package://tori_description/meshes/hip_z_x_r.stl" />
+    <xacro:property name="ankle_r_mesh" value="package://tori_description/meshes/ankle_r.stl" />
+    <xacro:property name="foot_r_mesh" value="package://tori_description/meshes/foot_r.stl" />
+
+    <xacro:property name="thigh_r_collision_mesh" value="package://tori_description/meshes/thigh_r_collision.stl" />
+    <xacro:property name="calf_r_collision_mesh" value="package://tori_description/meshes/calf_r_collision.stl" />
+    <xacro:property name="ankle_r_collision_mesh" value="package://tori_description/meshes/ankle_r_collision.stl" />
+    <xacro:property name="foot_r_collision_mesh" value="package://tori_description/meshes/foot_r_collision.stl" />
+
+    <xacro:property name="thigh_l_mesh" value="package://tori_description/meshes/thigh_l.stl" />
+    <xacro:property name="calf_l_mesh" value="package://tori_description/meshes/calf_l.stl" />
+    <xacro:property name="hip_x_y_l_mesh" value="package://tori_description/meshes/hip_x_y_l.stl" />
+    <xacro:property name="hip_z_x_l_mesh" value="package://tori_description/meshes/hip_z_x_l.stl" />
+    <xacro:property name="ankle_l_mesh" value="package://tori_description/meshes/ankle_l.stl" />
+    <xacro:property name="foot_l_mesh" value="package://tori_description/meshes/foot_l.stl" />
+
+    <xacro:property name="thigh_l_collision_mesh" value="package://tori_description/meshes/thigh_l_collision.stl" />
+    <xacro:property name="calf_l_collision_mesh" value="package://tori_description/meshes/calf_l_collision.stl" />
+    <xacro:property name="ankle_l_collision_mesh" value="package://tori_description/meshes/ankle_l_collision.stl" />
+    <xacro:property name="foot_l_collision_mesh" value="package://tori_description/meshes/foot_l_collision.stl" />
+
+    <xacro:property name="rpi_mesh" value="package://tori_description/meshes/rpi.stl" />
+    <xacro:property name="pca_mesh" value="package://tori_description/meshes/pca.stl" />
+
+    <xacro:property name="pelvis_mesh" value="package://tori_description/meshes/pelvis.stl" />
+    <xacro:property name="spine_0_mesh" value="package://tori_description/meshes/spine_0.stl" />
+    <xacro:property name="spine_1_mesh" value="package://tori_description/meshes/spine_1.stl" />
+    <xacro:property name="spine_2_mesh" value="package://tori_description/meshes/spine_2.stl" />
+    <xacro:property name="servo_mesh" value="package://tori_description/meshes/servo.stl" />
+
+    <xacro:property name="inertia_ratio" value=".000000000001" />
+    <xacro:property name="inertia_offset_case" value=".016" />
+    <xacro:property name="inertia_offset_joint" value=".007" />
+
+
+     <!--<link name="world"/>
+     <joint name="world_joint" type="fixed">
+       <parent link="world"/>
+       <child link="dummy"/>
+     </joint>-->
+
+
+
+   <link name="dummy">
+   </link>
+
+    <link name="${prefix}pelvis" > <!-- formerly base_link-->
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${pelvis_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="LightGrey">
+          <color rgba="0.7 0.7 0.7 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${pelvis_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="-.000062107 -.002467480 .000540235" rpy="0 0 0"/>
+        <mass value="${mass_pelvis}"/>
+        <inertia ixx="${231550208.000000 * inertia_ratio}" ixy="${319981.187500 * inertia_ratio}" ixz="${-367787.750000 * inertia_ratio}"
+          iyy="${993170496.000000 * inertia_ratio}" iyz="${27907164.000000 * inertia_ratio}"
+          izz="${822000000.000000 * inertia_ratio}"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}hip_r_z_servo_0_joint" type="fixed">
+      <parent link="${prefix}pelvis"/>
+      <child link="${prefix}hip_r_z_servo_0"/>
+      <origin xyz="-.091 0 -.027" rpy="0 0 ${PI/2}"/>
+    </joint>
+    <link name="${prefix}hip_r_z_servo_0">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+        <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_DS}"/>
+        <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${4967866.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+    <joint name="${prefix}hip_r_z_servo_1_joint" type="fixed"> <!--TODO: Technically wrong leg, but it shouldn't actually matter (also check other hip_z servos)-->
+      <parent link="${prefix}pelvis"/>
+      <child link="${prefix}hip_r_z_servo_1"/>
+      <origin xyz=".091 0 -.027" rpy="0 0 ${PI/2}"/>
+    </joint>
+    <link name="${prefix}hip_r_z_servo_1">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+        <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_DS}"/>
+        <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${4967866.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+    <joint name="${prefix}hip_l_z_servo_0_joint" type="fixed">
+      <parent link="${prefix}pelvis"/>
+      <child link="${prefix}hip_l_z_servo_0"/>
+      <origin xyz="-.091 0 .018" rpy="0 0 ${PI/2}"/>
+    </joint>
+    <link name="${prefix}hip_l_z_servo_0">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+        <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_DS}"/>
+        <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${4967866.000000 * inertia_ratio}" />
+      </inertial>
+
+    </link>
+    <joint name="${prefix}hip_l_z_servo_1_joint" type="fixed">
+      <parent link="${prefix}pelvis"/>
+      <child link="${prefix}hip_l_z_servo_1"/>
+      <origin xyz=".091 0 .018" rpy="0 0 ${PI/2}"/>
+    </joint>
+    <link name="${prefix}hip_l_z_servo_1">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+        <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_DS}"/>
+        <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${4967866.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+    <joint name="${prefix}spine_x_servo_0_joint" type="fixed">
+      <parent link="${prefix}pelvis"/>
+      <child link="${prefix}spine_x_servo_0"/>
+      <origin xyz="-.023 0 .053" rpy="0 0 ${PI/2}"/>
+    </joint>
+    <link name="${prefix}spine_x_servo_0">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+            <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_SF}"/>
+        <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${4967866.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+    <joint name="${prefix}spine_x_servo_1_joint" type="fixed">
+      <parent link="${prefix}pelvis"/>
+      <child link="${prefix}spine_x_servo_1"/>
+      <origin xyz=".023 0 .053" rpy="0 0 ${PI/2}"/>
+    </joint>
+    <link name="${prefix}spine_x_servo_1">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+            <color rgba="${Black}"/>
+      </visual>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_SF}"/>
+        <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${4967866.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+
+    <!--<xacro:rs_cam_stuff parent="torso_upper"/>-->
+    <!--from here <xacro:sensor_d415 parent="torso_upper" name="camera">
+      <origin xyz="0 0 .2" rpy="0 0 ${PI/2}"/>
+
+    </xacro:sensor_d415> to here-->
+
+
+    <!--<xacro:r parent="torso_upper">
+      <origin xyz="0 0 .2" rpy="0 0 ${PI/2}"/>
+    </xacro:sensor_d415>-->
+
+        <!--name=camera  use_nominal_extrinsics:=false/>-->
+
+
+    <!-- KINECT -->
+    <!--
+    <joint name="kinect_joint" type="fixed">
+      <parent link="torso_upper"/>
+      <child link="kinect_link"/>
+      <origin xyz="0 0 .2" />
+    </joint>
+    <link name="kinect_link">
+      <visual>
+        <geometry>
+          <box size="0.064 0.121 0.0381" />
+        </geometry>
+        <material name="Blue" />
+      </visual>
+      <inertial>
+          <mass value="0.1" />
+          <origin xyz="0 0 0" />
+          <inertia ixx="0.01" ixy="0.0" ixz="0.0"
+                   iyy="0.01" iyz="0.0"
+                   izz="0.01" />
+      </inertial>
+    </link>
+
+    <joint name="kinect_depth_joint" type="fixed">
+      <origin xyz="0 0.028 0" rpy="0 0 0" />
+      <parent link="kinect_link" />
+      <child link="kinect_depth_frame" />
+    </joint>
+
+    <link name="kinect_depth_frame">
+      <inertial>
+          <mass value="0.0001" />
+          <origin xyz="0 0 0" />
+          <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+                   iyy="0.0001" iyz="0.0"
+                   izz="0.0001" />
+      </inertial>
+    </link>
+
+    <joint name="depth_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-PI/2} 0 ${-PI/2}" />
+      <parent link="kinect_depth_frame" />
+      <child link="kinect_depth_optical_frame" />
+    </joint>
+
+    <link name="kinect_depth_optical_frame">
+      <inertial>
+          <mass value="0.0001" />
+          <origin xyz="0 0 0" />
+          <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+                   iyy="0.0001" iyz="0.0"
+                   izz="0.0001" />
+      </inertial>
+    </link>  -->
+
+
+
+    <!-- TORSO -->
+
+    <joint name="dummy_joint" type="fixed">
+      <parent link="dummy"/>
+      <child link="${prefix}pelvis"/>
+      <origin xyz="0 0 ${-dummy_adjustment - offset_ankle_y - offset_ankle_x - offset_knee - offset_hip_y - offset_hip_x - offset_hip_z}" rpy="0 0 0"/>
+    <!--<origin xyz="0 0 0" rpy="0 0 0"/>-->
+    </joint>
+
+    <joint name="${prefix}spine_x" type="revolute">
+      <parent link="${prefix}pelvis" />
+      <child link = "${prefix}torso_lower" />
+      <origin xyz="0 0 .07" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <dynamics damping="${damping}" friction="${friction}"/>
+      <limit lower="${lower_limit_spine_x}" upper="${upper_limit_spine_x}" effort="${effort_constant}" velocity="${velocity_JX}"/>
+    </joint>
+    <link name="${prefix}torso_lower">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${spine_0_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+        <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${spine_0_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="-.003544949 -.000000002 .071470787" rpy="0 0 0" />
+        <mass value="${mass_torso_lower}"/>
+        <inertia ixx="${124387136.000000 * inertia_ratio}" ixy="${1.646853 * inertia_ratio}" ixz="${11473532.000000 * inertia_ratio}"
+          iyy="${166922096.000000 * inertia_ratio}" iyz="${-18.958200 * inertia_ratio}"
+          izz="${83101680.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+    <joint name="${prefix}spine_y_servo_0_joint" type="fixed">
+      <parent link="${prefix}torso_lower"/>
+      <child link="${prefix}spine_y_servo_0"/>
+      <origin xyz="0 -.023 .110" rpy="0 0 0"/>
+    </joint>
+    <link name="${prefix}spine_y_servo_0">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+        <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_DS}"/>
+        <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${4967866.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+    <joint name="${prefix}spine_y_servo_1_joint" type="fixed">
+      <parent link="${prefix}torso_lower"/>
+      <child link="${prefix}spine_y_servo_1"/>
+      <origin xyz="0 .023 .110" rpy="0 0 0"/>
+    </joint>
+    <link name="${prefix}spine_y_servo_1">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+            <color rgba="${Black}"/>
+      </visual>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_DS}"/>
+        <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${4967866.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+
+
+
+    <joint name="${prefix}spine_y" type="revolute">
+      <parent link="${prefix}torso_lower" />
+      <child link = "${prefix}torso_mid" />
+      <origin xyz="0 0 ${offset_spine_y}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <dynamics damping="${damping}" friction="${friction}"/>
+      <limit lower="${lower_limit_spine_y}" upper="${upper_limit_spine_y}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+    </joint>
+    <link name="${prefix}torso_mid">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${spine_1_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${spine_1_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+          <color rgba="${Black}"/>
+      </visual>
+      <inertial>
+        <origin xyz="-.006629199 .013335866 .076523689" rpy="0 0 0" />
+        <mass value="${mass_torso_mid}"/>
+        <inertia ixx="${228482048.000000 * inertia_ratio}" ixy="${7697913.500000 * inertia_ratio}" ixz="${12358411.000000 * inertia_ratio}"
+          iyy="${159054800.000000 * inertia_ratio}" iyz="${-26235460.000000 * inertia_ratio}"
+          izz="${87150248.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+    <joint name="${prefix}spine_z_servo_0_joint" type="fixed">
+      <parent link="${prefix}torso_mid"/>
+      <child link="${prefix}spine_z_servo_0"/>
+      <origin xyz="0 .011 .094" rpy="0 0 0"/>
+    </joint>
+    <link name="${prefix}spine_z_servo_0">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+        <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_SF}"/>
+        <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${4967866.000000 * inertia_ratio}" />
+      </inertial>
+
+    </link>
+    <joint name="${prefix}spine_z_servo_1_joint" type="fixed">
+      <parent link="${prefix}torso_mid"/>
+      <child link="${prefix}spine_z_servo_1"/>
+      <origin xyz="0 .011 .140" rpy="0 0 0"/>
+    </joint>
+    <link name="${prefix}spine_z_servo_1">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+        <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_SF}"/>
+        <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${4967866.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+    <joint name="${prefix}spine_z" type="revolute">
+      <parent link="${prefix}torso_mid" />
+      <child link = "${prefix}torso_upper" />
+      <origin xyz="0 0 ${offset_spine_z}" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <dynamics damping="${damping}" friction="${friction}"/>
+      <limit lower="${lower_limit_spine_z}" upper="${upper_limit_spine_z}" effort="${effort_constant}" velocity="${velocity_JX}"/>
+    </joint>
+    <link name="${prefix}torso_upper">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${spine_2_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+        <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${spine_2_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz=".001071245 -.026289972 .053334553" rpy="0 0 0" />
+        <mass value="${mass_torso_upper}"/>
+        <inertia ixx="${225709312.000000 * inertia_ratio}" ixy="${-16628644.000000 * inertia_ratio}" ixz="${-1461705.500000 * inertia_ratio}"
+          iyy="${609968576.000000 * inertia_ratio}" iyz="${-26089856.000000 * inertia_ratio}"
+          izz="${516013120.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+    <joint name="${prefix}rpi_joint" type="fixed">
+      <parent link="${prefix}torso_upper"/>
+      <child link="${prefix}rpi"/>
+      <origin xyz=".035 -.012 .077" rpy="${PI/2} 0 ${PI/2}"/>
+    </joint>
+    <link name="${prefix}rpi">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="${rpi_mesh}" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="Black"/>
+        <color rgba="${Black}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <!--<mesh filename="${rpi_mesh}" scale=".001 .001 .001"/>-->
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="${mass_rpi}"/>
+        <inertia ixx="${5591666.500000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+          iyy="${17279166.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+          izz="${11779167.000000 * inertia_ratio}" />
+      </inertial>
+    </link>
+
+      <joint name="${prefix}pca_joint" type="fixed">
+        <parent link="${prefix}torso_upper"/>
+        <child link="${prefix}pca"/>
+        <origin xyz="-.050 -.020 .076" rpy="${PI/2} 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}pca">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${pca_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${pca_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_pca}"/>
+          <inertia ixx="${157250.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${1056250.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${901000.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+
+    <!-- LEFT ARM -->
+<!--
+        <joint name="${prefix}shoulder_l_x" type="revolute">
+          <parent link="${prefix}torso_upper" />
+          <child link = "${prefix}shoulder_l0" />
+          <origin xyz="${-width_torso_upper/2} 0 ${height_torso_upper - height_arm/2}" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_shoulder_x}" upper="${upper_limit_shoulder_x}" effort="${effort_shoulder_x}" velocity="3"/>
+        </joint>
+        <link name="${prefix}shoulder_l0">
+          <collision>
+            <origin xyz="${-height_placeholder/2 - width_gap_shoulder_0} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${-height_placeholder/2 - width_gap_shoulder_0} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${height_placeholder}" width="${radius_placeholder*2}" depth="${radius_placeholder*2}" mass="${mass_placeholder}" pos="${-height_placeholder/2 - width_gap_shoulder_0} 0 0" ang="0 ${-PI/2} 0">
+        </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}shoulder_l_y" type="revolute">
+          <parent link="${prefix}shoulder_l0" />
+          <child link = "${prefix}shoulder_l1" />
+          <origin xyz="${-height_placeholder - width_gap_shoulder_0} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 1 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_shoulder_y}" upper="${upper_limit_shoulder_y}" effort="${effort_shoulder_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}shoulder_l1">
+          <collision>
+            <origin xyz="${-height_placeholder/2 - width_gap_shoulder_1} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${-height_placeholder/2 - width_gap_shoulder_1} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${height_placeholder}" width="${radius_placeholder*2}" depth="${radius_placeholder*2}" mass="${mass_placeholder}" pos="${-height_placeholder/2 - width_gap_shoulder_1} 0 0" ang="0 ${-PI/2} 0">
+        </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}shoulder_l_z" type="revolute">
+          <parent link="${prefix}shoulder_l1" />
+          <child link = "${prefix}arm_l" />
+          <origin xyz="${-height_placeholder - width_gap_shoulder_1} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 0 1"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_shoulder_z}" upper="${upper_limit_shoulder_z}" effort="${effort_shoulder_z}" velocity="3"/>
+        </joint>
+
+        <link name="arm_l">
+          <collision>
+            <origin xyz="${-width_arm/2 - width_gap_shoulder_2} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${width_arm}" radius="${depth_arm/2}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${-width_arm/2 - width_gap_shoulder_2} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${width_arm}" radius="${depth_arm/2}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${width_arm}" width="${depth_arm}" depth="${depth_arm}" mass="${mass_arm}" pos="${-width_arm/2 - width_gap_shoulder_2} 0 0" ang="0 ${-PI/2} 0">
+        </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}elbow_l_z" type="revolute">
+          <parent link="${prefix}arm_l" />
+          <child link = "${prefix}forearm_l" />
+          <origin xyz="${-width_arm - width_gap_elbow_0} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 0 1"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_elbow_z}" upper="${upper_limit_elbow_z}" effort="${effort_constant}" velocity="3"/>
+        </joint>
+
+        <link name="${prefix}forearm_l">
+          <collision>
+            <origin xyz="${-height_placeholder/2 - width_gap_elbow_0} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${-height_placeholder/2 - width_gap_elbow_0} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${height_placeholder}" width="${radius_placeholder*2}" depth="${radius_placeholder*2}" mass="${mass_placeholder}" pos="${-height_placeholder/2 - width_gap_elbow_0} 0 0" ang="0 ${-PI/2} 0">
+        </xacro:box_inertial>
+
+
+        </link>
+
+        <joint name="${prefix}elbow_l_x" type="revolute">
+          <parent link="${prefix}forearm_l" />
+          <child link = "${prefix}wrist_l0" />
+          <origin xyz="${-height_placeholder - width_gap_elbow_0} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_elbow_x}" upper="${upper_limit_elbow_x}" effort="${effort_constant}" velocity="3"/>
+        </joint>
+
+        <link name="${prefix}wrist_l0">
+          <collision>
+            <origin xyz="${-width_forearm/2 - width_gap_elbow_1} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${width_forearm}" radius="${depth_forearm/2}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${-width_forearm/2 - width_gap_elbow_1} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${width_forearm}" radius="${depth_forearm/2}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+
+        <xacro:box_inertial height="${width_forearm}" width="${depth_forearm}" depth="${depth_forearm}" mass="${mass_forearm}" pos="${-width_forearm/2 - width_gap_elbow_1} 0 0" ang="0 ${-PI/2} 0">
+        </xacro:box_inertial>
+
+        </link>
+
+        <joint name="${prefix}wrist_l_z" type="revolute">
+          <parent link="${prefix}wrist_l0" />
+          <child link = "${prefix}wrist_l1" />
+          <origin xyz="${-width_forearm - width_gap_wrist_0} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 0 1"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_wrist_z}" upper="${upper_limit_wrist_z}" effort="${effort_wrist_z}" velocity="3"/>
+        </joint>
+
+        <link name="${prefix}wrist_l1">
+          <collision>
+            <origin xyz="${-height_placeholder/2 - width_gap_wrist_0} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${-height_placeholder/2 - width_gap_wrist_0} 0 0" rpy="0 ${-PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${height_placeholder}" width="${radius_placeholder*2}" depth="${radius_placeholder*2}" mass="${mass_placeholder}" pos="${-height_placeholder/2 - width_gap_elbow_0} 0 0" ang="0 ${-PI/2} 0">
+        </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}wrist_l_y" type="revolute">
+          <parent link="${prefix}wrist_l1" />
+          <child link = "${prefix}hand_l" />
+          <origin xyz="${-height_placeholder - width_gap_wrist_0} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 1 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_wrist_y}" upper="${upper_limit_wrist_y}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+
+        <link name="${prefix}hand_l">
+        <collision>
+          <origin xyz="${-width_palm/2 - width_gap_wrist_0} 0 0" rpy="0 0 0"/>
+          <geometry>
+    	<box size="${width_palm} ${depth_palm} ${height_palm}"/>
+          </geometry>
+        </collision>
+        <visual>
+          <origin xyz="${-width_palm/2 - width_gap_wrist_0} 0 0" rpy="0 0 0"/>
+          <geometry>
+    	<box size="${width_palm} ${depth_palm} ${height_palm}"/>
+          </geometry>
+          <material name="Black"/>
+              <color rgba="${Black}"/>
+        </visual>
+          <xacro:box_inertial height="${height_palm}" width="${width_palm}" depth="${depth_palm}" mass="${mass_hand}" pos="${-width_palm/2 - width_gap_wrist_0} 0 0" ang="0 0 0">
+          </xacro:box_inertial>
+        </link>-->
+
+
+    <!-- RIGHT ARM -->
+<!--
+        <joint name="${prefix}shoulder_r_x" type="revolute">
+          <parent link="${prefix}torso_upper" />
+          <child link = "${prefix}shoulder_r0" />
+          <origin xyz="${width_torso_upper/2} 0 ${height_torso_upper - height_arm/2}" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_shoulder_x}" upper="${upper_limit_shoulder_x}" effort="${effort_shoulder_x}" velocity="3"/>
+        </joint>
+        <link name="${prefix}shoulder_r0">
+          <collision>
+            <origin xyz="${height_placeholder/2 + width_gap_shoulder_0} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${height_placeholder/2 + width_gap_shoulder_0} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${height_placeholder}" width="${radius_placeholder*2}" depth="${radius_placeholder*2}" mass="${mass_placeholder}" pos="${height_placeholder/2 + width_gap_shoulder_0} 0 0" ang="0 ${PI/2} 0">
+        </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}shoulder_r_y" type="revolute">
+          <parent link="${prefix}shoulder_r0" />
+          <child link = "${prefix}shoulder_r1" />
+          <origin xyz="${height_placeholder + width_gap_shoulder_0} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 1 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_shoulder_y}" upper="${upper_limit_shoulder_y}" effort="${effort_shoulder_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}shoulder_r1">
+          <collision>
+            <origin xyz="${height_placeholder/2 + width_gap_shoulder_1} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${height_placeholder/2 + width_gap_shoulder_1} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${height_placeholder}" width="${radius_placeholder*2}" depth="${radius_placeholder*2}" mass="${mass_placeholder}" pos="${height_placeholder/2 + width_gap_shoulder_1} 0 0" ang="0 ${PI/2} 0">
+        </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}shoulder_r_z" type="revolute">
+          <parent link="${prefix}shoulder_r1" />
+          <child link = "${prefix}arm_r" />
+          <origin xyz="${height_placeholder + width_gap_shoulder_1} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 0 -1"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_shoulder_z}" upper="${upper_limit_shoulder_z}" effort="${effort_shoulder_z}" velocity="3"/>
+        </joint>
+
+        <link name="${prefix}arm_r">
+          <collision>
+            <origin xyz="${width_arm/2 + width_gap_shoulder_2} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${width_arm}" radius="${depth_arm/2}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${width_arm/2 + width_gap_shoulder_2} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${width_arm}" radius="${depth_arm/2}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${width_arm}" width="${depth_arm}" depth="${depth_arm}" mass="${mass_arm}" pos="${width_arm/2 + width_gap_shoulder_2} 0 0" ang="0 ${PI/2} 0">
+        </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}elbow_r_z" type="revolute">
+          <parent link="${prefix}arm_r" />
+          <child link = "${prefix}forearm_r" />
+          <origin xyz="${width_arm + width_gap_elbow_0} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 0 -1"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_elbow_z}" upper="${upper_limit_elbow_z}" effort="${effort_constant}" velocity="3"/>
+        </joint>
+
+        <link name="${prefix}forearm_r">
+          <collision>
+            <origin xyz="${height_placeholder/2 + width_gap_elbow_0} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${height_placeholder/2 + width_gap_elbow_0} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${height_placeholder}" width="${radius_placeholder*2}" depth="${radius_placeholder*2}" mass="${mass_placeholder}" pos="${height_placeholder/2 + width_gap_elbow_0} 0 0" ang="0 ${PI/2} 0">
+        </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}elbow_r_x" type="revolute">
+          <parent link="${prefix}forearm_r" />
+          <child link = "${prefix}wrist_r0" />
+          <origin xyz="${height_placeholder + width_gap_elbow_0} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_elbow_x}" upper="${upper_limit_elbow_x}" effort="${effort_constant}" velocity="3"/>
+        </joint>
+
+        <link name="${prefix}wrist_r0">
+          <collision>
+            <origin xyz="${width_forearm/2 + width_gap_elbow_1} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${width_forearm}" radius="${depth_forearm/2}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${width_forearm/2 + width_gap_elbow_1} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${width_forearm}" radius="${depth_forearm/2}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${width_forearm}" width="${depth_forearm}" depth="${depth_forearm}" mass="${mass_forearm}" pos="${width_forearm/2 + width_gap_elbow_1} 0 0" ang="0 ${PI/2} 0">
+        </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}wrist_r_z" type="revolute">
+          <parent link="${prefix}wrist_r0" />
+          <child link = "${prefix}wrist_r1" />
+          <origin xyz="${width_forearm + width_gap_wrist_0} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 0 -1"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_wrist_z}" upper="${upper_limit_wrist_z}" effort="${effort_wrist_z}" velocity="3"/>
+        </joint>
+
+        <link name="${prefix}wrist_r1">
+          <collision>
+            <origin xyz="${height_placeholder/2 + width_gap_wrist_0} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${height_placeholder/2 + width_gap_wrist_0} 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+              <cylinder length="${height_placeholder}" radius="${radius_placeholder}"/>
+            </geometry>
+            <material name="Black"/>
+              <color rgba="${Black}"/>
+          </visual>
+        <xacro:box_inertial height="${height_placeholder}" width="${radius_placeholder*2}" depth="${radius_placeholder*2}" mass="${mass_placeholder}" pos="${height_placeholder/2 + width_gap_elbow_0} 0 0" ang="0 ${PI/2} 0">
+        </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}wrist_r_y" type="revolute">
+          <parent link="${prefix}wrist_r1" />
+          <child link = "${prefix}hand_r" />
+          <origin xyz="${height_placeholder + width_gap_wrist_0} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 1 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_wrist_y}" upper="${upper_limit_wrist_y}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}hand_r">
+        <collision>
+          <origin xyz="${width_palm/2 + width_gap_wrist_0} 0 0" rpy="0 0 0"/>
+          <geometry>
+    	<box size="${width_palm} ${depth_palm} ${height_palm}"/>
+          </geometry>
+        </collision>
+        <visual>
+          <origin xyz="${width_palm/2 + width_gap_wrist_0} 0 0" rpy="0 0 0"/>
+          <geometry>
+    	<box size="${width_palm} ${depth_palm} ${height_palm}"/>
+          </geometry>
+          <material name="Black"/>
+              <color rgba="${Black}"/>
+        </visual>
+          <xacro:box_inertial height="${height_palm}" width="${width_palm}" depth="${depth_palm}" mass="${mass_hand}" pos="${width_palm/2 + width_gap_wrist_0} 0 0" ang="0 0 0">
+          </xacro:box_inertial>
+        </link>-->
+
+        <!-- index finger r-->
+<!--
+        <joint name="${prefix}finger_00y_joint_r" type="revolute">
+          <parent link="${prefix}hand_r" />
+          <child link = "${prefix}finger_0_base_r" />
+          <origin xyz="${width_palm + width_gap_wrist_0} 0 ${height_palm/4 + square_finger/2}" rpy="0 0 0"/>
+          <axis xyz="0 1 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_y}" upper="${upper_limit_finger_y}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_0_base_r">
+          <collision>
+            <origin xyz="${length_finger_base/2 + gap_finger_base} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger_base} ${square_finger_base} ${square_finger_base}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger_base/2 + gap_finger_base} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger_base} ${square_finger_base} ${square_finger_base}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger_base}" width="${square_finger_base}" depth="${square_finger_base}" mass="${mass_finger_base}" pos="${length_finger_base/2 + gap_finger_base} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}finger_00x_joint_r" type="revolute">
+          <parent link="${prefix}finger_0_base_r" />
+          <child link = "${prefix}finger_00_r" />
+          <origin xyz="${gap_finger_base + length_finger_base} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_0}" upper="${upper_limit_finger_0}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+
+        <link name="${prefix}finger_00_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}finger_01_joint_r" type="revolute">
+          <parent link="${prefix}finger_00_r" />
+          <child link = "${prefix}finger_01_r" />
+          <origin xyz="${gap_finger + length_finger} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_1}" upper="${upper_limit_finger_1}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_01_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}finger_02_joint_r" type="revolute">
+          <parent link="${prefix}finger_01_r" />
+          <child link = "${prefix}finger_02_r" />
+          <origin xyz="${gap_finger + length_finger} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_2}" upper="${upper_limit_finger_2}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_02_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>-->
+
+        <!-- middle finger r --><!--
+        <joint name="${prefix}finger_10y_joint_r" type="revolute">
+          <parent link="${prefix}hand_r" />
+          <child link = "${prefix}finger_1_base_r" />
+          <origin xyz="${width_palm + width_gap_wrist_0} 0 ${0 * height_palm/4 + square_finger/2}" rpy="0 0 0"/>
+          <axis xyz="0 1 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_y}" upper="${upper_limit_finger_y}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_1_base_r">
+          <collision>
+            <origin xyz="${length_finger_base/2 + gap_finger_base} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger_base} ${square_finger_base} ${square_finger_base}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger_base/2 + gap_finger_base} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger_base} ${square_finger_base} ${square_finger_base}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger_base}" width="${square_finger_base}" depth="${square_finger_base}" mass="${mass_finger_base}" pos="${length_finger_base/2 + gap_finger_base} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+
+        <joint name="${prefix}finger_10x_joint_r" type="revolute">
+          <parent link="${prefix}finger_1_base_r" />
+          <child link = "${prefix}finger_10_r" />
+          <origin xyz="${gap_finger_base + length_finger_base} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_0}" upper="${upper_limit_finger_0}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_10_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}finger_11_joint_r" type="revolute">
+          <parent link="${prefix}finger_10_r" />
+          <child link = "${prefix}finger_11_r" />
+          <origin xyz="${gap_finger + length_finger} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_1}" upper="${upper_limit_finger_1}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_11_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}finger_12_joint_r" type="revolute">
+          <parent link="${prefix}finger_11_r" />
+          <child link = "${prefix}finger_12_r" />
+          <origin xyz="${gap_finger + length_finger} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_2}" upper="${upper_limit_finger_2}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_12_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>-->
+
+        <!-- ring finger r --><!--
+        <joint name="${prefix}finger_20y_joint_r" type="revolute">
+          <parent link="${prefix}hand_r" />
+          <child link = "${prefix}finger_2_base_r" />
+          <origin xyz="${width_palm + width_gap_wrist_0} 0 ${-1 * height_palm/4 + square_finger/2}" rpy="0 0 0"/>
+          <axis xyz="0 1 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_y}" upper="${upper_limit_finger_y}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_2_base_r">
+          <collision>
+            <origin xyz="${length_finger_base/2 + gap_finger_base} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger_base} ${square_finger_base} ${square_finger_base}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger_base/2 + gap_finger_base} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger_base} ${square_finger_base} ${square_finger_base}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger_base}" width="${square_finger_base}" depth="${square_finger_base}" mass="${mass_finger_base}" pos="${length_finger_base/2 + gap_finger_base} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+
+        <joint name="${prefix}finger_20x_joint_r" type="revolute">
+          <parent link="${prefix}finger_2_base_r" />
+          <child link = "${prefix}finger_20_r" />
+          <origin xyz="${gap_finger_base + length_finger_base} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_0}" upper="${upper_limit_finger_0}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_20_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}finger_21_joint_r" type="revolute">
+          <parent link="${prefix}finger_20_r" />
+          <child link = "${prefix}finger_21_r" />
+          <origin xyz="${gap_finger + length_finger} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_1}" upper="${upper_limit_finger_1}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_21_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}finger_22_joint_r" type="revolute">
+          <parent link="${prefix}finger_21_r" />
+          <child link = "${prefix}finger_22_r" />
+          <origin xyz="${gap_finger + length_finger} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_2}" upper="${upper_limit_finger_2}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_22_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>-->
+
+        <!-- pinky finger r --><!--
+        <joint name="${prefix}finger_30y_joint_r" type="revolute">
+          <parent link="${prefix}hand_r" />
+          <child link = "${prefix}finger_3_base_r" />
+          <origin xyz="${width_palm + width_gap_wrist_0} 0 ${-2 * height_palm/4 + square_finger/2}" rpy="0 0 0"/>
+          <axis xyz="0 1 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_y}" upper="${upper_limit_finger_y}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_3_base_r">
+          <collision>
+            <origin xyz="${length_finger_base/2 + gap_finger_base} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger_base} ${square_finger_base} ${square_finger_base}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger_base/2 + gap_finger_base} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger_base} ${square_finger_base} ${square_finger_base}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger_base}" width="${square_finger_base}" depth="${square_finger_base}" mass="${mass_finger_base}" pos="${length_finger_base/2 + gap_finger_base} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+
+        <joint name="${prefix}finger_30x_joint_r" type="revolute">
+          <parent link="${prefix}finger_3_base_r" />
+          <child link = "${prefix}finger_30_r" />
+          <origin xyz="${gap_finger_base + length_finger_base} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_0}" upper="${upper_limit_finger_0}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_30_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}finger_31_joint_r" type="revolute">
+          <parent link="${prefix}finger_30_r" />
+          <child link = "${prefix}finger_31_r" />
+          <origin xyz="${gap_finger + length_finger} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_1}" upper="${upper_limit_finger_1}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_31_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}finger_32_joint_r" type="revolute">
+          <parent link="${prefix}finger_31_r" />
+          <child link = "${prefix}finger_32_r" />
+          <origin xyz="${gap_finger + length_finger} 0 0" rpy="0 0 0"/>
+          <axis xyz="1 0 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_2}" upper="${upper_limit_finger_2}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}finger_32_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>-->
+
+        <!-- thumb r -->
+        <!--TODO: add thumb_y-->
+<!--
+        <joint name="${prefix}thumb_y_joint_r" type="revolute">
+          <parent link="${prefix}hand_r" />
+          <child link = "${prefix}thumb_base_r" />
+          <origin xyz="${width_palm/4 + width_gap_wrist_0} 0 ${height_palm/2}" rpy="0 0 0"/>
+          <axis xyz="0 1 0"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_finger_y}" upper="${upper_limit_finger_y}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}thumb_base_r">
+          <collision>
+            <origin xyz="0 0 ${length_finger_base/2 + gap_finger_base}" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger_base} ${square_finger_base} ${square_finger_base}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="0 0 ${length_finger_base/2 + gap_finger_base}" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger_base} ${square_finger_base} ${square_finger_base}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger_base}" width="${square_finger_base}" depth="${square_finger_base}" mass="${mass_finger_base}" pos="${length_finger_base/2 + gap_finger_base} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+
+
+        <joint name="${prefix}thumb_0_joint_r" type="revolute">
+          <parent link="${prefix}thumb_base_r" />
+          <child link = "${prefix}thumb_0_r" />
+          <origin xyz="0 0 ${gap_finger + length_finger_base}" rpy="0 ${-PI/2} 0"/>
+          <axis xyz="0 0 1"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_thumb_y}" upper="${upper_limit_thumb_y}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}thumb_0_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}thumb_1_joint_r" type="revolute">
+          <parent link="${prefix}thumb_0_r" />
+          <child link = "${prefix}thumb_1_r" />
+          <origin xyz="${gap_finger + length_finger} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 0 1"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_thumb_0}" upper="${upper_limit_wrist_y}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}thumb_1_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>
+
+        <joint name="${prefix}thumb_2_joint_r" type="revolute">
+          <parent link="${prefix}thumb_1_r" />
+          <child link = "${prefix}thumb_2_r" />
+          <origin xyz="${gap_finger + length_finger} 0 0" rpy="0 0 0"/>
+          <axis xyz="0 0 1"/>
+          <dynamics damping="${damping}" friction="${friction}"/>
+          <limit lower="${lower_limit_wrist_y}" upper="${upper_limit_wrist_y}" effort="${effort_wrist_y}" velocity="3"/>
+        </joint>
+        <link name="${prefix}thumb_2_r">
+          <collision>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+          </collision>
+          <visual>
+            <origin xyz="${length_finger/2 + gap_finger} 0 0" rpy="0 0 0"/>
+            <geometry>
+              <box size="${length_finger} ${square_finger} ${square_finger}"/>
+            </geometry>
+            <material name="Black"/>
+                <color rgba="${Black}"/>
+          </visual>
+            <xacro:box_inertial height="${length_finger}" width="${square_finger}" depth="${square_finger}" mass="${mass_finger_00}" pos="${length_finger/2 + gap_finger} 0 0" ang="0 ${PI/2} 0">
+            </xacro:box_inertial>
+        </link>-->
+
+    <!-- RIGHT LEG -->
+
+      <joint name="${prefix}hip_r_z" type="revolute">
+        <parent link="${prefix}pelvis"/>
+        <child link="${prefix}hip_r_z_x"/>
+        <origin xyz="${offset_hip_z} 0 0" rpy="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_hip_z}" upper="${upper_limit_hip_z}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+      </joint>
+      <link name="${prefix}hip_r_z_x">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${hip_z_x_r_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${hip_z_x_r_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz=".017571852 -.000349534 -.040100899" rpy="0 0 0" />
+          <mass value="${mass_hip_z_x}"/>
+          <inertia ixx="${555098688.000000 * inertia_ratio}" ixy="${-23181858.000000 * inertia_ratio}" ixz="${-124674368.000000 * inertia_ratio}"
+            iyy="${702137664.000000 * inertia_ratio}" iyz="${-71664776.000000 * inertia_ratio}"
+            izz="${281482240.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}hip_r_x_servo_0_joint" type="fixed">
+        <parent link="${prefix}hip_r_z_x"/>
+        <child link="${prefix}hip_r_x_servo_0"/>
+        <origin xyz="-.040 0 -.090" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}hip_r_x_servo_0">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+
+      </link>
+      <joint name="${prefix}hip_r_x_servo_1_joint" type="fixed">
+        <parent link="${prefix}hip_r_z_x"/>
+        <child link="${prefix}hip_r_x_servo_1"/>
+        <origin xyz=".050 0 -.090" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}hip_r_x_servo_1">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}hip_r_x" type="revolute">
+        <parent link="${prefix}hip_r_z_x"/>
+        <child link="${prefix}hip_r_x_y"/>
+        <origin xyz="0 0 ${offset_hip_x}" rpy="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_hip_x}" upper="${upper_limit_hip_x}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+      </joint>
+      <link name="${prefix}hip_r_x_y">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${hip_x_y_r_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${hip_x_y_r_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz=".001916841 .000003669 -.019280025" rpy="0 0 0" />
+          <mass value="${mass_hip_x_y}"/>
+          <inertia ixx="${90326312.000000 * inertia_ratio}" ixy="${37.192734 * inertia_ratio}" ixz="${2910978.750000 * inertia_ratio}"
+            iyy="${127017272.000000 * inertia_ratio}" iyz="${6164.478516 * inertia_ratio}"
+            izz="${164451008.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}hip_r_y" type="revolute">
+        <parent link="${prefix}hip_r_x_y"/>
+        <child link="${prefix}thigh_r"/>
+        <origin xyz="0 0 ${offset_hip_y}" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_hip_y}" upper="${upper_limit_hip_y}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+      </joint>
+      <link name="${prefix}thigh_r">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${thigh_r_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${thigh_r_collision_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="-.002060035 .006943111 -.137971710" rpy="0 0 0" />
+          <mass value="${mass_thigh}"/>
+          <inertia ixx="${2767439104.000000 * inertia_ratio}" ixy="${-340475.250000 * inertia_ratio}" ixz="${8016495.000000 * inertia_ratio}"
+            iyy="${2733617664.000000 * inertia_ratio}" iyz="${450212992.000000 * inertia_ratio}"
+            izz="${2102001280.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}hip_r_y_servo_0_joint" type="fixed">
+        <parent link="${prefix}thigh_r"/>
+        <child link="${prefix}hip_r_y_servo_0"/>
+        <origin xyz="0 .035 -.011" rpy="0 0 0"/>
+      </joint>
+      <link name="${prefix}hip_r_y_servo_0">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}hip_r_y_servo_1_joint" type="fixed">
+        <parent link="${prefix}thigh_r"/>
+        <child link="${prefix}hip_r_y_servo_1"/>
+        <origin xyz="0 -.035 -.011" rpy="0 0 0"/>
+      </joint>
+      <link name="${prefix}hip_r_y_servo_1">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}knee_r_servo_0_joint" type="fixed">
+        <parent link="${prefix}thigh_r"/>
+        <child link="${prefix}knee_r_servo_0"/>
+        <origin xyz="-.030 0 -.190" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}knee_r_servo_0">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_JX}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}knee_r_servo_1_joint" type="fixed">
+        <parent link="${prefix}thigh_r"/>
+        <child link="${prefix}knee_r_servo_1"/>
+        <origin xyz=".030 0 -.190" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}knee_r_servo_1">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+              <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_JX}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}knee_r" type="revolute">
+        <parent link="${prefix}thigh_r"/>
+        <child link="${prefix}calf_r"/>
+        <origin xyz="0 0 ${offset_knee}" rpy="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_knee_x}" upper="${upper_limit_knee_x}" effort="${effort_constant}" velocity="${velocity_JX}"/>
+      </joint>
+      <link name="${prefix}calf_r">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${calf_r_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="${White}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${calf_r_collision_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="-.000004121 .007987968 -.128351074" rpy="0 0 0" />
+          <mass value="${mass_calf}"/>
+          <inertia ixx="${4194820608.000000 * inertia_ratio}" ixy="${-473618.125000 * inertia_ratio}" ixz="${-451796.031250 * inertia_ratio}"
+            iyy="${4509438976.000000 * inertia_ratio}" iyz="${62615448.000000 * inertia_ratio}"
+            izz="${3256164352.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}ankle_servo_0_joint" type="fixed">
+        <parent link="${prefix}calf_r"/>
+        <child link="${prefix}ankle_servo_0"/>
+        <origin xyz="-.045 0 -.211" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}ankle_servo_0">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}ankle_servo_1_joint" type="fixed">
+        <parent link="${prefix}calf_r"/>
+        <child link="${prefix}ankle_servo_1"/>
+        <origin xyz=".045 0 -.211" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}ankle_servo_1">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}ankle_r_x" type="revolute">
+        <parent link="${prefix}calf_r"/>
+        <child link="${prefix}ankle_r"/>
+        <origin xyz="0 0 ${offset_ankle_x}" rpy="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_ankle_x}" upper="${upper_limit_ankle_x}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+      </joint>
+      <link name="${prefix}ankle_r">
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${ankle_r_collision_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+        </collision>
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${ankle_r_collision_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+              <color rgba="${Black}"/>
+        </visual>
+      <inertial>
+        <origin xyz="-.000618945 .000017144 -.043992859" rpy="0 0 0" />
+        <mass value="${mass_ankle}"/>
+        <inertia ixx="${123806944.000000 * inertia_ratio}" ixy="${296.732086 * inertia_ratio}" ixz="${184197.671875 * inertia_ratio}"
+          iyy="${127575752.000000 * inertia_ratio}" iyz="${36397.789062 * inertia_ratio}"
+          izz="${224165520.000000 * inertia_ratio}" />
+      </inertial>
+      </link>
+
+      <joint name="${prefix}foot_servo_0_joint" type="fixed">
+        <parent link="${prefix}foot_r"/>
+        <child link="${prefix}foot_servo_0"/>
+        <origin xyz="0 .045 -.012" rpy="0 0 0"/>
+      </joint>
+      <link name="${prefix}foot_servo_0">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 -.05" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}foot_servo_1_joint" type="fixed">
+        <parent link="${prefix}foot_r"/>
+        <child link="${prefix}foot_servo_1"/>
+        <origin xyz="0 -.045 -.012" rpy="0 0 0"/>
+      </joint>
+      <link name="${prefix}foot_servo_1">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+<!--
+      <joint name="${prefix}ball_joint_r" type="revolute">
+        <parent link="${prefix}foot_r"/>
+        <child link="${prefix}ball_r"/>
+        <origin xyz="0 .1 -.02" rpy="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <dynamics damping="${damping}"/>
+      <limit lower="${lower_limit_ball}" upper="${upper_limit_ball}" effort="${effort_ball}" velocity="${joint_velocity}"/>
+    </joint>
+      <link name="${prefix}ball_r">
+        <collision>
+          <origin xyz=".0 .025 0" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.08 0.05 0.02"/>
+          </geometry>
+        </collision>
+        <visual>
+          <origin xyz=".0 .025 0" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.08 0.05 0.02"/>
+          </geometry>
+          <material name="${Red}"/>
+        </visual>
+        <xacro:box_inertial height=".02" width="0.08" depth=".05" mass="${mass_ball}" pos=".0 .025 0" ang="0 0 0">
+        </xacro:box_inertial>
+      </link>-->
+
+
+
+    <!-- LEFT LEG -->
+
+      <joint name="${prefix}hip_l_z" type="revolute">
+        <parent link="${prefix}pelvis"/>
+        <child link="${prefix}hip_l_z_x"/>
+        <origin xyz="${-offset_hip_z} 0 0" rpy="0 0 0"/>
+        <axis xyz="0 0 -1"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_hip_z}" upper="${upper_limit_hip_z}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+      </joint>
+      <link name="${prefix}hip_l_z_x">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${hip_z_x_l_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+              <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${hip_z_x_l_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+      <inertial>
+        <origin xyz="-.017570456 -.00347991 -.040112427" rpy="0 0 0" />
+        <mass value="${mass_hip_z_x}"/>
+        <inertia ixx="${555078912.000000 * inertia_ratio}" ixy="${23186852.000000 * inertia_ratio}" ixz="${124676192.000000 * inertia_ratio}"
+          iyy="${702113536.000000 * inertia_ratio}" iyz="${-71674168.000000 * inertia_ratio}"
+          izz="${281483904.000000 * inertia_ratio}" />
+      </inertial>
+
+      </link>
+
+      <joint name="${prefix}hip_l_x_servo_0_joint" type="fixed">
+        <parent link="${prefix}hip_l_z_x"/>
+        <child link="${prefix}hip_l_x_servo_0"/>
+        <origin xyz="-.050 0 -.090" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}hip_l_x_servo_0">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}hip_l_x_servo_1_joint" type="fixed">
+        <parent link="${prefix}hip_l_z_x"/>
+        <child link="${prefix}hip_l_x_servo_1"/>
+        <origin xyz=".040 0 -.090" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}hip_l_x_servo_1">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}hip_l_x" type="revolute">
+        <parent link="${prefix}hip_l_z_x"/>
+        <child link="${prefix}hip_l_x_y"/>
+        <origin xyz="0 0 ${offset_hip_x}" rpy="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_hip_x}" upper="${upper_limit_hip_x}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+      </joint>
+      <link name="${prefix}hip_l_x_y">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${hip_x_y_l_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${hip_x_y_l_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="-.001901933 .000002684 -.019281031" rpy="0 0 0" />
+          <mass value="${mass_hip_x_y}"/>
+          <inertia ixx="${90316016.000000 * inertia_ratio}" ixy="${2107.875977 * inertia_ratio}" ixz="${-2914989.250000 * inertia_ratio}"
+            iyy="${127007568.000000 * inertia_ratio}" iyz="${6566.823242 * inertia_ratio}"
+            izz="${164438000.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}hip_l_y" type="revolute">
+        <parent link="${prefix}hip_l_x_y"/>
+        <child link="${prefix}thigh_l"/>
+        <origin xyz="0 0 ${offset_hip_y}" rpy="0 0 0"/>
+        <axis xyz="0 -1 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_hip_y}" upper="${upper_limit_hip_y}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+      </joint>
+      <link name="${prefix}thigh_l">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${thigh_l_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${thigh_l_collision_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz=".002060390 .006943429 -.137976913" rpy="0 0 0" />
+          <mass value="${mass_thigh}"/>
+          <inertia ixx="${2766745088.000000 * inertia_ratio}" ixy="${352151.125000 * inertia_ratio}" ixz="${-7977528.000000 * inertia_ratio}"
+            iyy="${2732864512.000000 * inertia_ratio}" iyz="${450158016.000000 * inertia_ratio}"
+            izz="${2102034688.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}hip_l_y_servo_0_joint" type="fixed">
+        <parent link="${prefix}thigh_l"/>
+        <child link="${prefix}hip_l_y_servo_0"/>
+        <origin xyz="0 .035 -.011" rpy="0 0 0"/>
+      </joint>
+      <link name="${prefix}hip_l_y_servo_0">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}hip_l_y_servo_1_joint" type="fixed">
+        <parent link="${prefix}thigh_l"/>
+        <child link="${prefix}hip_l_y_servo_1"/>
+        <origin xyz="0 -.035 -.011" rpy="0 0 0"/>
+      </joint>
+      <link name="${prefix}hip_l_y_servo_1">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}knee_l_servo_0_joint" type="fixed">
+        <parent link="${prefix}thigh_l"/>
+        <child link="${prefix}knee_l_servo_0"/>
+        <origin xyz="-.030 0 -.190" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}knee_l_servo_0">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_JX}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}knee_l_servo_1_joint" type="fixed">
+        <parent link="${prefix}thigh_l"/>
+        <child link="${prefix}knee_l_servo_1"/>
+        <origin xyz=".030 0 -.190" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}knee_l_servo_1">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_JX}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}knee_l" type="revolute">
+        <parent link="${prefix}thigh_l"/>
+        <child link="${prefix}calf_l"/>
+        <origin xyz="0 0 ${offset_knee}" rpy="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_knee_x}" upper="${upper_limit_knee_x}" effort="${effort_constant}" velocity="${velocity_JX}"/>
+      </joint>
+      <link name="${prefix}calf_l">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${calf_l_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="${White}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${calf_l_collision_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz=".000008944 .001660231 -.123774109" rpy="0 0 0" />
+          <mass value="${mass_calf}"/>
+          <inertia ixx="${4195298560.000000 * inertia_ratio}" ixy="${436721.531250 * inertia_ratio}" ixz="${974164.437500 * inertia_ratio}"
+            iyy="${4510084608.000000 * inertia_ratio}" iyz="${62635568.000000 * inertia_ratio}"
+            izz="${3256341504.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}ankle_l_servo_0_joint" type="fixed">
+        <parent link="${prefix}calf_l"/>
+        <child link="${prefix}ankle_l_servo_0"/>
+        <origin xyz="-.045 0 -.211" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}ankle_l_servo_0">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}ankle_l_servo_1_joint" type="fixed">
+        <parent link="${prefix}calf_l"/>
+        <child link="${prefix}ankle_l_servo_1"/>
+        <origin xyz=".045 0 -.211" rpy="0 0 ${PI/2}"/>
+      </joint>
+      <link name="${prefix}ankle_l_servo_1">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}ankle_l_x" type="revolute">
+        <parent link="${prefix}calf_l"/>
+        <child link="${prefix}ankle_l"/>
+        <origin xyz="0 0 ${offset_ankle_x}" rpy="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_ankle_x}" upper="${upper_limit_ankle_x}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+      </joint>
+      <link name="${prefix}ankle_l">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${ankle_l_collision_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${ankle_l_collision_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz=".000628665 .000016178 -.043992519" rpy="0 0 0" />
+          <mass value="${mass_ankle}"/>
+          <inertia ixx="${123811176.000000 * inertia_ratio}" ixy="${1080.197144 * inertia_ratio}" ixz="${-198123.406250 * inertia_ratio}"
+            iyy="${127610480.000000 * inertia_ratio}" iyz="${33164.343750 * inertia_ratio}"
+            izz="${224202928.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}ankle_l_y" type="revolute">
+        <parent link="${prefix}ankle_l"/>
+        <child link="${prefix}foot_l"/>
+        <origin xyz="0 0 ${offset_ankle_y}" rpy="0 0 0"/>
+        <axis xyz="0 -1 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_ankle_y}" upper="${upper_limit_ankle_y}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+      </joint>
+      <link name="${prefix}foot_l">
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+             <mesh filename="${foot_l_collision_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+          <!--<contact_coefficient mu="10"  resitution="1"  k_p="1000000"  k_d="100" />-->
+        </collision>
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+             <mesh filename="${foot_l_collision_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+          <material name="${Red}"/>
+        </visual>
+        <inertial>
+          <origin xyz=".003465025 .004649493 -.042715496" rpy="0 0 0" />
+          <mass value="${mass_foot}"/>
+          <inertia ixx="${1278722816.000000 * inertia_ratio}" ixy="${-3585326.000000 * inertia_ratio}" ixz="${15627451.000000 * inertia_ratio}"
+            iyy="${808794816.000000 * inertia_ratio}" iyz="${-22703350.000000 * inertia_ratio}"
+            izz="${1933839488.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <gazebo reference="${prefix}foot_l">
+        <selfCollide>true</selfCollide>
+        <maxContacts>10</maxContacts>
+        <minDepth>0.00</minDepth>
+        <maxVel>1.00</maxVel>
+        <kp>1000000.0</kp>
+        <kd>100.0</kd>
+        <collision name="foot_l_collision">
+          <geometry>
+            <mesh filename="${foot_l_collision_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+          <surface>
+            <!--<kp>1000000.0</kp>
+            <kd>100.0</kd>
+            <mu1>1.5</mu1>
+            <mu2>1.5</mu2>
+            <fdir1>1 0 0</fdir1>
+            <maxVel>1.0</maxVel>
+            <minDepth>0.00</minDepth>-->
+            <friction>
+              <ode>
+                <mu>9.98500</mu>
+                <mu2>9.98500</mu2>
+                <fdir1>1.000000 0.000000 0.000000</fdir1>
+                <slip1>0.000000</slip1>
+                <slip2>0.000000</slip2>
+                <!--<kp>1000000.0</kp>
+                <kd>100.0</kd>-->
+              </ode>
+              <!--<contact>
+                <poissons_ratio>0.5</poissons_ratio>
+                <elastic_modulus>1e8</elastic_modulus>
+              </contact>
+              <mu>10.00</mu>
+              <mu2>10.00</mu2>-->
+              <torsional>
+                <coefficient>500</coefficient>
+                <use_patch_radius>true</use_patch_radius>
+                <surface_radius>5</surface_radius>
+                <patch_radius>1</patch_radius>
+              </torsional>
+            </friction>
+          </surface>
+        </collision>
+      </gazebo>
+
+      <joint name="${prefix}ankle_r_y" type="revolute">
+        <parent link="${prefix}ankle_r"/>
+        <child link="${prefix}foot_r"/>
+        <origin xyz="0 0 ${offset_ankle_y}" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_ankle_y}" upper="${upper_limit_ankle_y}" effort="${effort_constant}" velocity="${velocity_DS}"/>
+      </joint>
+      <link name="${prefix}foot_r">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+             <mesh filename="${foot_r_collision_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+          <material name="${Red}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+             <mesh filename="${foot_r_collision_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+          <!--<contact_coefficient mu="100"  resitution="0"  k_p="0"  k_d="0" />-->
+        </collision>
+        <inertial>
+          <origin xyz="-.003453289 .004650488 -.042721497" rpy="0 0 0" />
+          <mass value="${mass_foot}"/>
+          <inertia ixx="${1278494208.000000 * inertia_ratio}" ixy="${3579418.750000 * inertia_ratio}" ixz="${-15607733.000000 * inertia_ratio}"
+            iyy="${808660288.000000 * inertia_ratio}" iyz="${-22713808.000000 * inertia_ratio}"
+            izz="${1933690624.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <gazebo reference="${prefix}foot_r">
+        <selfCollide>true</selfCollide>
+        <maxContacts>10</maxContacts>
+        <minDepth>0.00</minDepth>
+        <maxVel>1.00</maxVel>
+        <kp>1000000.0</kp>
+        <kd>100.0</kd>
+        <collision name="foot_r_collision">
+          <geometry>
+            <mesh filename="${foot_r_collision_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+          <surface>
+            <!--<kp>1000000.0</kp>
+            <kd>100.0</kd>
+            <mu1>1.5</mu1>
+            <mu2>1.5</mu2>
+            <fdir1>1 0 0</fdir1>
+            <maxVel>1.0</maxVel>
+            <minDepth>0.00</minDepth>-->
+            <friction>
+              <ode>
+                <mu>9.98500</mu>
+                <mu2>9.98500</mu2>
+                <fdir1>1.000000 0.000000 0.000000</fdir1>
+                <slip1>0.000000</slip1>
+                <slip2>0.000000</slip2>
+                <!--<kp>1000000.0</kp>
+                <kd>100.0</kd>-->
+              </ode>
+              <!--<contact>
+                <poissons_ratio>0.5</poissons_ratio>
+                <elastic_modulus>1e8</elastic_modulus>
+              </contact>
+              <mu>10.00</mu>
+              <mu2>10.00</mu2>-->
+              <torsional>
+                <coefficient>500</coefficient>
+                <use_patch_radius>true</use_patch_radius>
+                <surface_radius>5</surface_radius>
+                <patch_radius>1</patch_radius>
+              </torsional>
+            </friction>
+          </surface>
+      </collision>
+      </gazebo>
+
+      <joint name="${prefix}foot_l_servo_0_joint" type="fixed">
+        <parent link="${prefix}foot_l"/>
+        <child link="${prefix}foot_l_servo_0"/>
+        <origin xyz="0 .045 -.012" rpy="0 0 0"/>
+      </joint>
+      <link name="${prefix}foot_l_servo_0">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+
+      <joint name="${prefix}foot_l_servo_1_joint" type="fixed">
+        <parent link="${prefix}foot_l"/>
+        <child link="${prefix}foot_l_servo_1"/>
+        <origin xyz="0 -.045 -.012" rpy="0 0 0"/>
+      </joint>
+      <link name="${prefix}foot_l_servo_1">
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <!--<mesh filename="${servo_mesh}" scale=".001 .001 .001"/>-->
+          </geometry>
+        </collision>
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <mesh filename="${servo_mesh}" scale=".001 .001 .001"/>
+          </geometry>
+          <material name="Black"/>
+          <color rgba="${Black}"/>
+        </visual>
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0" />
+          <mass value="${mass_DS}"/>
+          <inertia ixx="${8106666.000000 * inertia_ratio}" ixy="${0.000000 * inertia_ratio}" ixz="${0.0000000 * inertia_ratio}"
+            iyy="${4967866.000000 * inertia_ratio}" iyz="${0.000000 * inertia_ratio}"
+            izz="${4967866.000000 * inertia_ratio}" />
+        </inertial>
+      </link>
+<!--
+      <joint name="${prefix}ball_joint_l" type="revolute">
+        <parent link="${prefix}foot_l"/>
+        <child link="${prefix}ball_l"/>
+        <origin xyz="0 .1 -.02" rpy="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <dynamics damping="${damping}"/>
+        <limit lower="${lower_limit_ball}" upper="${upper_limit_ball}" effort="${effort_ball}" velocity="${joint_velocity}"/>
+    </joint>
+      <link name="${prefix}ball_l">
+        <collision>
+          <origin xyz="0 .025 0" rpy="0 0 0"/>
+          <geometry>
+            <box size="0.08 0.05 0.02"/>
+          </geometry>
+        </collision>
+        <visual>
+          <origin xyz="0 .025 0" rpy="0 0 0"/>
+          <geometry>
+      <box size="0.08 0.05 0.02"/>
+          </geometry>
+          <material name="${Red}"/>
+        </visual>
+        <xacro:box_inertial height=".02" width=".11" depth=".08" mass="${mass_ball}" pos="0 .025 0" ang="0 0 0">
+        </xacro:box_inertial>
+      </link>-->
+
+
+  <!--<gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/robot_description</robotNamespace>
+    </plugin>
+  </gazebo>-->
+    <xacro:tori_arm_transmission prefix="${prefix}" hw_interface="${transmission_hw_interface}" />
+    <xacro:tori_arm_gazebo prefix="${prefix}" />
+  </xacro:macro>
+</robot>
